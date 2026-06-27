@@ -13,9 +13,9 @@ Script ini dirancang untuk melakukan *load testing* (uji beban) pada Apache Guac
 ## Cara Instalasi & Persiapan
 
 ### 1. Set Workspace (Rekomendasi)
-Buka folder proyek ini di VS Code atau editor Anda:
+Clone repo ini ke komputer atau laptop kalian:
 ```
-C:\Users\noname\.gemini\antigravity\scratch\guacamole-load-test
+git clone https://github.com/eprilian/guacamole-load-test
 ```
 
 ### 2. Install Dependensi
