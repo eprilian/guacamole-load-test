@@ -1,0 +1,12 @@
+{
+  "url": "https://guacamole.example.com/",
+  "username": "admin",
+  "password": "password123",
+  "connectionName": "",
+  "concurrentUsers": 5,
+  "rampUpDelay": 2,
+  "sessionDuration": 60,
+  "headless": true,
+  "loginOnly": false,
+  "debug": false
+}
