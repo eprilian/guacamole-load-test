@@ -39,17 +39,32 @@ npx playwright install chromium
 ```json
 {
   "url": "https://guacamole.example.com/", // URL Guacamole Anda
-  "username": "admin",                     // Username akun test
-  "password": "password123",               // Password akun test
+  "username": "admin",                     // Username akun tunggal (cadangan)
+  "password": "password123",               // Password akun tunggal (cadangan)
   "connectionName": "",                    // Nama koneksi spesifik (kosong = pilih koneksi pertama)
   "concurrentUsers": 5,                    // Jumlah user simulasi
   "rampUpDelay": 2,                        // Jeda masuk antar user (detik)
   "sessionDuration": 60,                   // Durasi tes per user (detik)
   "headless": true,                        // Jalankan di background (true/false)
   "loginOnly": false,                      // Hanya tes login (tanpa memicu RDP/SSH di server)
-  "debug": false                           // Aktifkan debug logs (true/false)
+  "debug": false,                          // Aktifkan debug logs (true/false)
+  
+  "useMultiUser": false,                   // Ubah ke true untuk menggunakan file multi-user
+  "usersFile": "./users.json"              // File penyimpanan daftar akun multi-user
 }
 ```
+
+### 1.2. (Opsional) Mengatur Multi-User (`users.json`)
+Jika Anda mengaktifkan `"useMultiUser": true` pada `config.json`:
+1. Buat file **`users.json`** di folder proyek Anda (Salin dari **[users.example.json](file:///C:/Users/noname/.gemini/antigravity/scratch/guacamole-load-test/users.example.json)**).
+2. Isi file `users.json` tersebut dengan daftar akun:
+```json
+[
+  { "username": "user1", "password": "password_user_1" },
+  { "username": "user2", "password": "password_user_2" }
+]
+```
+Skrip secara otomatis akan bergilir (round-robin) memilih kredensial dari daftar tersebut untuk setiap *Virtual User*. Jika `"useMultiUser"` bernilai `false`, skrip akan kembali menggunakan `"username"` & `"password"` tunggal cadangan yang ada di `config.json`.
 
 ### 2. Mulai Pengujian
 Jalankan perintah ini di Terminal / PowerShell / CMD:

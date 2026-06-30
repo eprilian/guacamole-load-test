@@ -13,13 +13,31 @@ try {
   CONFIG = require('./config.json');
 } catch (err) {
   console.error('\n============================================================');
-  console.error('[SYSTEM] [ERROR] File "config.json" tidak ditemukan!');
-  console.error('[SYSTEM] [ERROR] Harap salin "config.example.json" menjadi "config.json"');
-  console.error('[SYSTEM] [ERROR] lalu konfigurasikan URL dan kredensial Anda.');
+  console.error('[SYSTEM] [ERROR] File "config.json" not found!');
+  console.error('[SYSTEM] [ERROR] Please copy "config.example.json" to "config.json"');
+  console.error('[SYSTEM] [ERROR] and configure your URL and credentials.');
   console.error('============================================================\n');
   process.exit(1);
 }
 
+// Load users list if multi-user mode is active
+let USERS = [];
+const useMultiUser = CONFIG.useMultiUser === true;
+
+if (useMultiUser) {
+  const usersPath = CONFIG.usersFile;
+  try {
+    // Load users list from external path specified in config.json
+    USERS = require(usersPath);
+    console.log(`[SYSTEM] Multi-User mode active. Successfully loaded ${USERS.length} users from "${usersPath}"`);
+  } catch (err) {
+    console.error(`[SYSTEM] [ERROR] Failed to load users file from: ${usersPath}`);
+    console.error(`[SYSTEM] [ERROR] Error details: ${err.message}`);
+    console.error('[SYSTEM] [ERROR] Fallback: Using single user credentials from config.json');
+  }
+} else {
+  console.log('[SYSTEM] Multi-User mode inactive. Using single user credentials from config.json');
+}
 
 // Helper function for delays
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -31,8 +49,8 @@ function log(vuId, message, level = 'info') {
   console.log(`${timestamp} ${vuTag} ${message}`);
 }
 
-async function runVirtualUser(vuId, browser) {
-  log(vuId, 'Starting session...');
+async function runVirtualUser(vuId, browser, credentials) {
+  log(vuId, `Starting session for user: "${credentials.username}"...`);
   
   // Create an isolated browser context (equivalent to incognito window)
   const context = await browser.newContext({
@@ -56,10 +74,10 @@ async function runVirtualUser(vuId, browser) {
     const passwordInput = page.locator('input[type="password"], input[name="password"], input[id="password"]').first();
     
     await usernameInput.waitFor({ state: 'visible', timeout: 15000 });
-    await usernameInput.fill(CONFIG.username);
+    await usernameInput.fill(credentials.username);
     
     await passwordInput.waitFor({ state: 'visible', timeout: 5000 });
-    await passwordInput.fill(CONFIG.password);
+    await passwordInput.fill(credentials.password);
     
     // Locate the submit button (usually button[type="submit"] or containing "Login" / "Sign in")
     const loginButton = page.locator('button[type="submit"], input[type="submit"], button.login-button').first();
@@ -72,9 +90,9 @@ async function runVirtualUser(vuId, browser) {
     await page.waitForSelector('.connection-list, .connection, .root-group, .name', { state: 'visible', timeout: 20000 });
     log(vuId, 'Logged in successfully! Loading connection list...');
     
-    // Jika hanya menguji login, diam di halaman utama hingga waktu durasi selesai
+    // If only testing login, stay on dashboard until session duration expires
     if (CONFIG.loginOnly) {
-      log(vuId, `loginOnly mode aktif. Diam di dashboard selama ${CONFIG.sessionDuration} detik...`);
+      log(vuId, `loginOnly mode active. Staying on dashboard for ${CONFIG.sessionDuration} seconds...`);
       await delay(CONFIG.sessionDuration * 1000);
       return;
     }
@@ -186,8 +204,14 @@ async function main() {
       await delay(CONFIG.rampUpDelay * 1000);
     }
     
+    // Determine credentials for this VU (round-robin if Multi-User mode is active)
+    let credentials = { username: CONFIG.username, password: CONFIG.password };
+    if (useMultiUser && USERS.length > 0) {
+      credentials = USERS[(i - 1) % USERS.length];
+    }
+    
     // Spawn the VU process asynchronously
-    const task = runVirtualUser(i, browser);
+    const task = runVirtualUser(i, browser, credentials);
     tasks.push(task);
   }
   

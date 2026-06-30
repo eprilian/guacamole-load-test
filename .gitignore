@@ -8,6 +8,7 @@ package.json
 
 # File Konfigurasi Sensitif (Kredensial & URL)
 config.json
+users.json
 
 # Hasil Screenshot Error dari Playwright
 vu-*-error.png

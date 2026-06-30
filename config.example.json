@@ -8,5 +8,7 @@
   "sessionDuration": 60,
   "headless": true,
   "loginOnly": false,
-  "debug": false
+  "debug": false,
+  "useMultiUser": false,
+  "usersFile": "./users.json"
 }
